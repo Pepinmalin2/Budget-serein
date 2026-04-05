@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mon Budget Serein</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #F8FAFC;
+            color: #1E293B;
+        }
+
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: slideIn 0.4s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-ui {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid #F1F5F9;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-indigo {
+            background-color: #4F46E5;
+            transition: all 0.2s ease;
+        }
+        .btn-indigo:active { transform: scale(0.97); opacity: 0.9; }
+
+        .spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 2px solid #fff;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header & Barre de progression -->
+    <nav class="p-5 sticky top-0 bg-white/80 backdrop-blur-md z-30 border-b border-slate-100">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-sm">
+                    <i class="fas fa-wallet text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold text-slate-900 tracking-tight">Budget Serein</h1>
+                    <span id="step-label" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Accueil</span>
+                </div>
+            </div>
+        </div>
+        <div id="progress-container" class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500" style="width: 0%"></div>
+        </div>
+    </nav>
+
+    <!-- Contenu Principal -->
+    <main class="flex-grow flex flex-col px-6 pb-12">
+        
+        <!-- Étape 0 : Bienvenue -->
+        <div id="step-0" class="step-content active py-10 text-center">
+            <div class="inline-flex p-6 bg-indigo-50 rounded-[2rem] mb-8 text-5xl">✨</div>
+            <h2 class="text-2xl font-black text-slate-900 mb-4">Prête pour un mois serein ?</h2>
+            <p class="text-slate-500 mb-10 text-sm leading-relaxed max-w-xs mx-auto">
+                Prenons deux minutes pour organiser vos finances et savoir exactement ce qu'il vous reste pour vos loisirs et votre famille.
+            </p>
+            <button onclick="nextStep(1)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-100">
+                Commencer le calcul
+            </button>
+        </div>
+
+        <!-- Formulaire -->
+        <div id="form-steps">
+            <!-- Étape 1 : Revenus -->
+            <div id="step-1" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold text-slate-900 mb-2">Vos revenus</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Tout ce qui arrive sur votre compte (salaire, aides, etc.).</p>
+                <div class="card-ui p-6 mb-8">
+                    <label class="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-4">Total reçu (€)</label>
+                    <input type="number" id="income" placeholder="0" class="w-full text-4xl font-black text-slate-900 bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <button onclick="nextStep(2)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- Étape 2 : Fixes -->
+            <div id="step-2" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold text-slate-900 mb-2">Charges fixes</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Loyers, factures, assurances, abonnements...</p>
+                <div class="card-ui p-6 mb-8 border-l-4 border-l-rose-500">
+                    <label class="block text-[10px] font-bold text-rose-500 uppercase tracking-widest mb-4">Dépenses obligatoires (€)</label>
+                    <input type="number" id="fixed-costs" placeholder="0" class="w-full text-4xl font-black text-slate-900 bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="nextStep(1)" class="flex-1 bg-slate-100 text-slate-500 font-bold py-4 rounded-2xl">Retour</button>
+                    <button onclick="nextStep(3)" class="flex-[2] btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+                </div>
+            </div>
+
+            <!-- Étape 3 : Variables -->
+            <div id="step-3" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold text-slate-900 mb-2">Vie quotidienne</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Budget estimé pour les courses et le transport.</p>
+                <div class="card-ui p-6 mb-8 border-l-4 border-l-amber-400">
+                    <label class="block text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-4">Besoins courants (€)</label>
+                    <input type="number" id="variable-costs" placeholder="0" class="w-full text-4xl font-black text-slate-900 bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="nextStep(2)" class="flex-1 bg-slate-100 text-slate-500 font-bold py-4 rounded-2xl">Retour</button>
+                    <button onclick="nextStep(4)" class="flex-[2] btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+                </div>
+            </div>
+
+            <!-- Étape 4 : Épargne -->
+            <div id="step-4" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold text-slate-900 mb-2">Sécurité future</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Le montant que vous souhaitez mettre de côté.</p>
+                <div class="card-ui p-6 mb-8 border-l-4 border-l-emerald-400">
+                    <label class="block text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Épargne (€)</label>
+                    <input type="number" id="savings" placeholder="0" class="w-full text-4xl font-black text-slate-900 bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="nextStep(3)" class="flex-1 bg-slate-100 text-slate-500 font-bold py-4 rounded-2xl">Retour</button>
+                    <button onclick="calculateFinal()" class="flex-[2] btn-indigo text-white font-bold py-4 rounded-2xl shadow-lg">Résultat final</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RÉSULTATS -->
+        <div id="step-result" class="step-content">
+            <div class="bg-slate-900 rounded-[2rem] p-8 text-center text-white mb-8 shadow-xl">
+                <p class="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Reste pour se faire plaisir</p>
+                <div id="final-amount" class="text-4xl font-black mb-4">0,00 €</div>
+                <div id="final-status" class="inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-white/10">Calcul terminé</div>
+            </div>
+
+            <!-- IA COACH BUTTON -->
+            <button id="expert-btn" onclick="getAIAid()" class="w-full bg-white border border-slate-200 text-indigo-600 font-bold py-4 rounded-2xl flex items-center justify-center space-x-3 mb-10 shadow-sm active:scale-95 transition-all">
+                <i class="fas fa-magic"></i>
+                <span>Conseils personnalisés de votre coach</span>
+            </button>
+            <div id="ai-response" class="hidden mb-10 bg-indigo-50 p-6 rounded-2xl border border-indigo-100 text-sm text-indigo-900 leading-relaxed italic">
+                <!-- Réponse IA -->
+            </div>
+
+            <!-- CONSEILS FIXES -->
+            <div class="space-y-10">
+                <section>
+                    <h3 class="font-black text-slate-900 mb-4 px-2 flex items-center">
+                        <span class="w-2 h-2 bg-indigo-600 rounded-full mr-2"></span>
+                        Éducation Financière
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="card-ui p-5">
+                            <p class="text-xs font-bold text-slate-900 mb-1">La règle 50/30/20</p>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Visez 50% pour vos besoins, 30% pour vos envies et 20% pour l'avenir. C'est un guide pour équilibrer votre vie.</p>
+                        </div>
+                        <div class="card-ui p-5">
+                            <p class="text-xs font-bold text-slate-900 mb-1">Le fonds d'urgence</p>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Constituez un premier palier de 1000€ pour ne plus craindre les imprévus (panne, santé).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="font-black text-slate-900 mb-4 px-2 flex items-center">
+                        <span class="w-2 h-2 bg-emerald-600 rounded-full mr-2"></span>
+                        Placements
+                    </h3>
+                    <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+                        <p class="text-xs font-bold text-emerald-900 uppercase mb-2">Le LEP (Livret Épargne Populaire)</p>
+                        <p class="text-[11px] text-emerald-800 leading-relaxed italic">Le placement le plus sûr et le plus rentable si vos revenus sont modérés. Vérifiez votre éligibilité avec votre avis d'imposition.</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="font-black text-slate-900 mb-4 px-2 flex items-center">
+                        <span class="w-2 h-2 bg-amber-600 rounded-full mr-2"></span>
+                        Astuces Budget
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="card-ui p-4">
+                            <i class="fas fa-calendar-check text-amber-500 mb-2"></i>
+                            <p class="text-[10px] font-bold text-slate-900">Menus de la semaine</p>
+                            <p class="text-[9px] text-slate-400">Pour éviter le gaspillage.</p>
+                        </div>
+                        <div class="card-ui p-4">
+                            <i class="fas fa-tshirt text-amber-500 mb-2"></i>
+                            <p class="text-[10px] font-bold text-slate-900">Seconde main</p>
+                            <p class="text-[9px] text-slate-400">Pour habiller la famille à petit prix.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <button onclick="location.reload()" class="w-full mt-12 py-4 text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]">
+                Recommencer le calcul
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const apiKey = ""; // Gérée par l'environnement
+        let currentStep = 0;
+        let userData = { income: 0, fixed: 0, variable: 0, savings: 0, remaining: 0 };
+
+        function nextStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            const nextEl = document.getElementById(`step-${step}`);
+            if (nextEl) {
+                nextEl.classList.add('active');
+                currentStep = step;
+                const progress = (step / 4) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('step-label').innerText = step === 0 ? "Accueil" : `Étape ${step}/4`;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function calculateFinal() {
+            userData.income = parseFloat(document.getElementById('income').value) || 0;
+            userData.fixed = parseFloat(document.getElementById('fixed-costs').value) || 0;
+            userData.variable = parseFloat(document.getElementById('variable-costs').value) || 0;
+            userData.savings = parseFloat(document.getElementById('savings').value) || 0;
+            userData.remaining = userData.income - userData.fixed - userData.variable - userData.savings;
+
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('form-steps').style.display = 'none';
+            document.getElementById('step-label').innerText = "Analyse terminée";
+            
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-result').classList.add('active');
+
+            const amountEl = document.getElementById('final-amount');
+            const status = document.getElementById('final-status');
+            
+            amountEl.innerText = userData.remaining.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+
+            if (userData.remaining < 0) {
+                status.innerText = "BUDGET À RÉÉQUILIBRER";
+                status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black tracking-widest bg-rose-500 text-white";
+                amountEl.className = "text-4xl font-black mb-4 text-rose-400";
+            } else if (userData.remaining < 150) {
+                status.innerText = "BUDGET SERRÉ";
+                status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black tracking-widest bg-amber-500 text-white";
+                amountEl.className = "text-4xl font-black mb-4 text-amber-400";
+            } else {
+                status.innerText = "BUDGET ÉQUILIBRÉ";
+                status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black tracking-widest bg-emerald-500 text-white";
+                amountEl.className = "text-4xl font-black mb-4 text-emerald-400";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function getAIAid() {
+            const btn = document.getElementById('expert-btn');
+            const responseDiv = document.getElementById('ai-response');
+            
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner"></div><span>Analyse de votre profil...</span>`;
+            
+            const prompt = `En tant que coach financier bienveillant, analyse ce budget mensuel pour une famille et donne 3 conseils très concrets, naturels et encourageants.
+            Revenus: ${userData.income}€
+            Fixes: ${userData.fixed}€
+            Variables: ${userData.variable}€
+            Épargne: ${userData.savings}€
+            Reste: ${userData.remaining}€
+            Parle du LEP si pertinent. Maximum 120 mots.`;
+
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Félicitations pour cette étape de gestion !";
+                
+                responseDiv.innerHTML = text.replace(/\n/g, '<br>');
+                responseDiv.classList.remove('hidden');
+                btn.innerHTML = `<i class="fas fa-check"></i><span>Conseils reçus</span>`;
+            } catch (error) {
+                btn.innerHTML = `<i class="fas fa-redo"></i><span>Réessayer</span>`;
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error();
+                return res;
+            } catch (err) {
+                if (retries <= 0) throw err;
+                await new Promise(resolve => setTimeout(resolve, backoff));
+                return fetchWithRetry(url, options, retries - 1, backoff * 2);
+            }
+        }
+    </script>
+</body>
+</html>
+
