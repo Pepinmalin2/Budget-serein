@@ -18,8 +18,14 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .card-ui { background: white; border-radius: 1.5rem; border: 1px solid #F1F5F9; transition: all 0.3s; }
         .btn-indigo { background-color: #4F46E5; }
-        .spinner { border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid #fff; width: 18px; height: 18px; animation: spin 0.8s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .expense-row { display: flex; align-items: center; padding: 14px 16px; border-radius: 1rem; background: #f8fafc; margin-bottom: 8px; transition: all 0.2s; }
+        .dark .expense-row { background: #0f172a; }
+        .expense-row:focus-within { box-shadow: 0 0 0 2px #6366f1; }
+        .expense-row i { width: 28px; text-align: center; font-size: 16px; flex-shrink: 0; }
+        .expense-row label { flex: 1; font-size: 13px; font-weight: 600; margin-left: 10px; }
+        .expense-row input { width: 90px; text-align: right; font-size: 18px; font-weight: 800; background: transparent; border: 0; outline: none; }
+        .expense-row .unit { font-size: 12px; font-weight: 700; color: #94a3b8; margin-left: 4px; flex-shrink: 0; }
+        .subtotal-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 1rem; font-weight: 800; font-size: 15px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#F8FAFC]">
@@ -63,6 +69,7 @@
 
         <!-- Formulaire par étapes -->
         <div id="form-steps">
+
             <!-- 1. Taille du foyer -->
             <div id="step-1" class="step-content pt-4">
                 <h2 class="text-xl font-extrabold mb-2">Votre foyer</h2>
@@ -80,33 +87,177 @@
             <!-- 2. Revenus -->
             <div id="step-2" class="step-content pt-4">
                 <h2 class="text-xl font-extrabold mb-2">Les entrées</h2>
-                <p class="text-xs text-slate-400 mb-8 italic">Salaire, CAF, aides, pensions...</p>
-                <div class="card-ui p-6 mb-8 text-slate-900 dark:text-white">
-                    <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-4">Total mensuel (€)</label>
-                    <input type="number" id="income" placeholder="0" class="w-full text-4xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                <p class="text-xs text-slate-400 mb-6 italic">Détaillez toutes vos sources de revenus mensuels.</p>
+                <div class="card-ui p-5 mb-8 text-slate-900 dark:text-white">
+                    <div class="expense-row">
+                        <i class="fas fa-briefcase text-indigo-500"></i>
+                        <label>Salaire net</label>
+                        <input type="number" id="rev-salaire" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-baby text-pink-500"></i>
+                        <label>CAF / Allocations</label>
+                        <input type="number" id="rev-caf" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-hand-holding-usd text-amber-500"></i>
+                        <label>APL / Aides au logement</label>
+                        <input type="number" id="rev-apl" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-coins text-emerald-500"></i>
+                        <label>Pension / Autres</label>
+                        <input type="number" id="rev-autre" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="subtotal-bar bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 mt-4">
+                        <span>Total revenus</span>
+                        <span id="rev-total">0 €</span>
+                    </div>
                 </div>
                 <button onclick="nextStep(3)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
             </div>
 
-            <!-- 3. Besoins Essentiels -->
+            <!-- 3. Logement & Factures -->
             <div id="step-3" class="step-content pt-4">
-                <h2 class="text-xl font-extrabold mb-2">Les besoins essentiels</h2>
-                <p class="text-xs text-slate-400 mb-6 italic">Additionnez vos charges fixes et quotidiennes.</p>
-                <div class="space-y-4 mb-8">
-                    <div class="card-ui p-4 border-l-4 border-l-rose-500 text-slate-900 dark:text-white">
-                        <label class="block text-[10px] font-bold text-rose-500 uppercase mb-2">Loyer & Factures (€)</label>
-                        <input type="number" id="needs-fixed" placeholder="0" class="w-full text-2xl font-bold bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                <h2 class="text-xl font-extrabold mb-2">Logement & Factures</h2>
+                <p class="text-xs text-slate-400 mb-6 italic">Votre loyer et toutes les factures récurrentes.</p>
+                <div class="card-ui p-5 mb-8 text-slate-900 dark:text-white">
+                    <div class="expense-row">
+                        <i class="fas fa-home text-rose-500"></i>
+                        <label>Loyer / Crédit immo</label>
+                        <input type="number" id="fix-loyer" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
                     </div>
-                    <div class="card-ui p-4 border-l-4 border-l-amber-500 text-slate-900 dark:text-white">
-                        <label class="block text-[10px] font-bold text-amber-500 uppercase mb-2">Courses & Transport (€)</label>
-                        <input type="number" id="needs-variable" placeholder="0" class="w-full text-2xl font-bold bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                    <div class="expense-row">
+                        <i class="fas fa-bolt text-yellow-500"></i>
+                        <label>Électricité / Gaz</label>
+                        <input type="number" id="fix-energie" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-tint text-blue-400"></i>
+                        <label>Eau</label>
+                        <input type="number" id="fix-eau" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-shield-alt text-slate-500"></i>
+                        <label>Assurance habitation</label>
+                        <input type="number" id="fix-assurance" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-wifi text-cyan-500"></i>
+                        <label>Internet / Box</label>
+                        <input type="number" id="fix-internet" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="subtotal-bar bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 mt-4">
+                        <span>Sous-total logement</span>
+                        <span id="fix-total">0 €</span>
                     </div>
                 </div>
                 <button onclick="nextStep(4)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
             </div>
 
-            <!-- 4. Objectif Plaisir -->
+            <!-- 4. Abonnements & Transport -->
             <div id="step-4" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Abonnements & Transport</h2>
+                <p class="text-xs text-slate-400 mb-6 italic">Tous vos abonnements mensuels et vos frais de déplacement.</p>
+                <div class="card-ui p-5 mb-8 text-slate-900 dark:text-white">
+                    <div class="expense-row">
+                        <i class="fas fa-mobile-alt text-indigo-500"></i>
+                        <label>Forfait téléphone</label>
+                        <input type="number" id="abo-tel" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-film text-purple-500"></i>
+                        <label>Streaming vidéo</label>
+                        <input type="number" id="abo-video" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-music text-green-500"></i>
+                        <label>Streaming musique</label>
+                        <input type="number" id="abo-musique" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-dumbbell text-orange-500"></i>
+                        <label>Salle de sport / Loisirs</label>
+                        <input type="number" id="abo-sport" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-heartbeat text-rose-400"></i>
+                        <label>Mutuelle / Santé</label>
+                        <input type="number" id="abo-mutuelle" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-subway text-teal-500"></i>
+                        <label>Carte de transport / Navigo</label>
+                        <input type="number" id="abo-transport" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-car text-slate-500"></i>
+                        <label>Voiture (crédit / assurance / essence)</label>
+                        <input type="number" id="abo-voiture" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="subtotal-bar bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 mt-4">
+                        <span>Sous-total abonnements</span>
+                        <span id="abo-total">0 €</span>
+                    </div>
+                </div>
+                <button onclick="nextStep(5)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- 5. Courses & Quotidien -->
+            <div id="step-5" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Courses & Quotidien</h2>
+                <p class="text-xs text-slate-400 mb-6 italic">Ce que vous dépensez chaque mois pour vivre au quotidien.</p>
+                <div class="card-ui p-5 mb-8 text-slate-900 dark:text-white">
+                    <div class="expense-row">
+                        <i class="fas fa-shopping-cart text-emerald-500"></i>
+                        <label>Courses alimentaires</label>
+                        <input type="number" id="quo-courses" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-pills text-red-400"></i>
+                        <label>Pharmacie / Santé</label>
+                        <input type="number" id="quo-sante" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-child text-blue-400"></i>
+                        <label>Cantine / Garde enfants</label>
+                        <input type="number" id="quo-enfants" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="expense-row">
+                        <i class="fas fa-ellipsis-h text-slate-400"></i>
+                        <label>Autres dépenses fixes</label>
+                        <input type="number" id="quo-autres" placeholder="0" inputmode="decimal">
+                        <span class="unit">€</span>
+                    </div>
+                    <div class="subtotal-bar bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mt-4">
+                        <span>Sous-total quotidien</span>
+                        <span id="quo-total">0 €</span>
+                    </div>
+                </div>
+                <button onclick="nextStep(6)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- 6. Objectif Plaisir -->
+            <div id="step-6" class="step-content pt-4">
                 <h2 class="text-xl font-extrabold mb-2">Un projet plaisir ?</h2>
                 <p class="text-xs text-slate-400 mb-8 italic">Une sortie, un vêtement, un petit cadeau...</p>
                 <div class="card-ui p-6 mb-4 text-slate-900 dark:text-white">
@@ -115,11 +266,11 @@
                     <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-2">Coût estimé (€)</label>
                     <input type="number" id="goal-cost" placeholder="0" class="w-full text-3xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
                 </div>
-                <button onclick="nextStep(5)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+                <button onclick="nextStep(7)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
             </div>
 
-            <!-- 5. Épargne -->
-            <div id="step-5" class="step-content pt-4">
+            <!-- 7. Épargne -->
+            <div id="step-7" class="step-content pt-4">
                 <h2 class="text-xl font-extrabold mb-2">Votre sécurité</h2>
                 <p class="text-xs text-slate-400 mb-8 italic">Ce que vous mettez de côté pour l'avenir.</p>
                 <div class="card-ui p-6 mb-8 border-l-4 border-l-emerald-400 text-slate-900 dark:text-white">
@@ -143,6 +294,19 @@
 
             <!-- Statut de l'objectif -->
             <div id="goal-result" class="mb-8 p-4 rounded-2xl border-2 border-dashed text-center text-sm font-bold"></div>
+
+            <!-- Détail des dépenses -->
+            <div class="card-ui p-6 mb-6">
+                <h3 class="font-black text-sm mb-4 flex items-center">
+                    <i class="fas fa-list text-indigo-500 mr-2"></i>
+                    Détail des charges
+                </h3>
+                <div id="detail-charges" class="text-[12px] space-y-2"></div>
+                <div class="border-t border-slate-200 dark:border-slate-700 mt-4 pt-3 flex justify-between font-extrabold text-sm">
+                    <span>Total charges</span>
+                    <span id="detail-total-charges" class="text-rose-500">0 €</span>
+                </div>
+            </div>
 
             <!-- Graphique Répartition -->
             <div class="card-ui p-6 mb-10">
@@ -196,15 +360,52 @@
     <script>
         let currentStep = 0;
         let chartInstance = null;
-        const totalSteps = 5;
+        const totalSteps = 7;
         const STORAGE_KEY = 'budget-serein-data';
+
+        // IDs de tous les champs de saisie
+        const ALL_FIELDS = {
+            rev: ['rev-salaire','rev-caf','rev-apl','rev-autre'],
+            fix: ['fix-loyer','fix-energie','fix-eau','fix-assurance','fix-internet'],
+            abo: ['abo-tel','abo-video','abo-musique','abo-sport','abo-mutuelle','abo-transport','abo-voiture'],
+            quo: ['quo-courses','quo-sante','quo-enfants','quo-autres']
+        };
+
+        const FIELD_LABELS = {
+            'fix-loyer':'Loyer / Crédit immo', 'fix-energie':'Électricité / Gaz', 'fix-eau':'Eau',
+            'fix-assurance':'Assurance habitation', 'fix-internet':'Internet / Box',
+            'abo-tel':'Forfait téléphone', 'abo-video':'Streaming vidéo', 'abo-musique':'Streaming musique',
+            'abo-sport':'Salle de sport', 'abo-mutuelle':'Mutuelle / Santé', 'abo-transport':'Transport',
+            'abo-voiture':'Voiture',
+            'quo-courses':'Courses alimentaires', 'quo-sante':'Pharmacie', 'quo-enfants':'Cantine / Garde',
+            'quo-autres':'Autres dépenses'
+        };
 
         window.addEventListener('load', () => {
             loadFromLocal();
+            setupLiveSubtotals();
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.body.classList.add('dark');
             }
         });
+
+        function setupLiveSubtotals() {
+            Object.entries(ALL_FIELDS).forEach(([group, ids]) => {
+                ids.forEach(id => {
+                    document.getElementById(id).addEventListener('input', () => updateSubtotal(group));
+                });
+            });
+        }
+
+        function sumGroup(ids) {
+            return ids.reduce((sum, id) => sum + (parseFloat(document.getElementById(id).value) || 0), 0);
+        }
+
+        function updateSubtotal(group) {
+            const total = sumGroup(ALL_FIELDS[group]);
+            const el = document.getElementById(`${group}-total`);
+            if (el) el.innerText = total.toLocaleString('fr-FR') + ' €';
+        }
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark');
@@ -224,15 +425,16 @@
         }
 
         function calculateAndShowResults() {
-            const income = parseFloat(document.getElementById('income').value) || 0;
+            const income = sumGroup(ALL_FIELDS.rev);
             const householdSize = parseFloat(document.getElementById('household-size').value) || 3;
-            const needsFixed = parseFloat(document.getElementById('needs-fixed').value) || 0;
-            const needsVariable = parseFloat(document.getElementById('needs-variable').value) || 0;
+            const totalFix = sumGroup(ALL_FIELDS.fix);
+            const totalAbo = sumGroup(ALL_FIELDS.abo);
+            const totalQuo = sumGroup(ALL_FIELDS.quo);
             const savings = parseFloat(document.getElementById('savings').value) || 0;
             const goalName = document.getElementById('goal-name').value || "Projet";
             const goalCost = parseFloat(document.getElementById('goal-cost').value) || 0;
 
-            const totalNeeds = needsFixed + needsVariable;
+            const totalNeeds = totalFix + totalAbo + totalQuo;
             const remainingForFun = income - totalNeeds - savings;
 
             document.getElementById('progress-container').style.display = 'none';
@@ -255,6 +457,19 @@
                 status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-500 text-white";
             }
 
+            // Détail des charges
+            let detailHtml = '';
+            const allExpenseIds = [...ALL_FIELDS.fix, ...ALL_FIELDS.abo, ...ALL_FIELDS.quo];
+            allExpenseIds.forEach(id => {
+                const val = parseFloat(document.getElementById(id).value) || 0;
+                if (val > 0) {
+                    detailHtml += `<div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">${FIELD_LABELS[id]}</span><span class="font-bold">${val.toLocaleString('fr-FR')} €</span></div>`;
+                }
+            });
+            document.getElementById('detail-charges').innerHTML = detailHtml || '<p class="text-slate-400 italic">Aucune charge renseignée</p>';
+            document.getElementById('detail-total-charges').innerText = totalNeeds.toLocaleString('fr-FR') + ' €';
+
+            // Objectif
             const goalDiv = document.getElementById('goal-result');
             if (goalCost > 0) {
                 goalDiv.style.display = 'block';
@@ -271,7 +486,7 @@
             }
 
             renderChart(totalNeeds, Math.max(0, remainingForFun), savings);
-            generateExpertDiagnostics(income, totalNeeds, remainingForFun, savings, householdSize);
+            generateExpertDiagnostics(income, totalFix, totalAbo, totalQuo, remainingForFun, savings, householdSize);
             saveToLocal();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -279,35 +494,67 @@
         function renderChart(needs, envies, savings) {
             const ctx = document.getElementById('budgetChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [needs, envies, savings],
-                        backgroundColor: ['#f43f5e', '#6366f1', '#10b981'],
-                        borderWidth: 0
-                    }]
-                },
+                data: { datasets: [{ data: [needs, envies, savings], backgroundColor: ['#f43f5e', '#6366f1', '#10b981'], borderWidth: 0 }] },
                 options: { cutout: '70%', plugins: { legend: { display: false } } }
             });
         }
 
-        function generateExpertDiagnostics(income, needs, fun, savings, size) {
+        function generateExpertDiagnostics(income, fix, abo, quo, fun, savings, size) {
             const diagDiv = document.getElementById('expert-diagnostic');
             let html = "";
-            const needsPercent = (needs / income) * 100;
+            const totalNeeds = fix + abo + quo;
+            const needsPercent = income > 0 ? (totalNeeds / income) * 100 : 0;
 
             if (needsPercent > 60) {
-                html += createDiagCard("Besoins", `Attention : vos charges vitales occupent ${Math.round(needsPercent)}% de vos revenus (cible: 50%). Renégociez vos contrats !`, "rose");
+                html += createDiagCard("Charges globales", `Vos charges occupent ${Math.round(needsPercent)}% de vos revenus (cible : max 50%). Il faut trouver des leviers pour réduire.`, "rose");
+            } else if (needsPercent > 50) {
+                html += createDiagCard("Charges globales", `Vos charges occupent ${Math.round(needsPercent)}% — proche de la limite. Gardez un oeil dessus.`, "amber");
             } else {
-                html += createDiagCard("Besoins", `Sain : vos charges vitales sont sous contrôle (${Math.round(needsPercent)}%).`, "emerald");
+                html += createDiagCard("Charges globales", `Vos charges sont à ${Math.round(needsPercent)}% de vos revenus. C'est sain !`, "emerald");
             }
 
-            const groceriesBenchmark = size * 160;
-            const variableVal = parseFloat(document.getElementById('needs-variable').value) || 0;
-            if (variableVal > groceriesBenchmark + 100) {
-                html += createDiagCard("Quotidien", `Pour ${size} personnes, votre budget semble élevé. Testez les marques distributeurs pour gagner de l'air !`, "amber");
+            // Logement > 33% ?
+            const loyerVal = parseFloat(document.getElementById('fix-loyer').value) || 0;
+            if (income > 0 && loyerVal > 0) {
+                const loyerPct = (loyerVal / income) * 100;
+                if (loyerPct > 33) {
+                    html += createDiagCard("Logement", `Votre loyer représente ${Math.round(loyerPct)}% de vos revenus (norme : max 33%). C'est élevé.`, "rose");
+                }
+            }
+
+            // Abonnements streaming cumulés
+            const streamTotal = (parseFloat(document.getElementById('abo-video').value) || 0) + (parseFloat(document.getElementById('abo-musique').value) || 0);
+            if (streamTotal > 30) {
+                html += createDiagCard("Streaming", `${streamTotal}€/mois en streaming. Avez-vous vraiment besoin de tous ces abonnements ? Un partage familial peut réduire la note.`, "amber");
+            }
+
+            // Forfait téléphone
+            const telVal = parseFloat(document.getElementById('abo-tel').value) || 0;
+            if (telVal > 20) {
+                html += createDiagCard("Téléphone", `${telVal}€/mois pour le forfait. Des offres à 2-10€ existent chez les MVNO (comme Lebara, Prixtel, Auchan Telecom).`, "amber");
+            }
+
+            // Courses alimentaires
+            const coursesVal = parseFloat(document.getElementById('quo-courses').value) || 0;
+            const coursesBench = size * 160;
+            if (coursesVal > coursesBench + 100) {
+                html += createDiagCard("Courses", `${coursesVal}€ pour ${size} personnes, c'est au-dessus de la moyenne (~${coursesBench}€). Testez les marques distributeurs et planifiez vos menus.`, "amber");
+            } else if (coursesVal > 0 && coursesVal <= coursesBench) {
+                html += createDiagCard("Courses", `${coursesVal}€ pour ${size} personnes — bien maîtrisé.`, "emerald");
+            }
+
+            // Épargne
+            if (income > 0) {
+                const savePct = (savings / income) * 100;
+                if (savePct >= 20) {
+                    html += createDiagCard("Épargne", `${Math.round(savePct)}% d'épargne — excellent, vous dépassez la cible de 20%.`, "emerald");
+                } else if (savePct >= 10) {
+                    html += createDiagCard("Épargne", `${Math.round(savePct)}% d'épargne — correct. Essayez de viser 20% pour plus de sérénité.`, "amber");
+                } else if (savings > 0) {
+                    html += createDiagCard("Épargne", `Seulement ${Math.round(savePct)}% d'épargne. Même 50€/mois sur un LEP font la différence sur le long terme.`, "rose");
+                }
             }
 
             diagDiv.innerHTML = html;
@@ -324,64 +571,64 @@
             const saveText = document.getElementById('save-text');
             saveText.innerText = "Sauvegarde...";
 
-            const data = {
-                income: document.getElementById('income').value,
-                householdSize: document.getElementById('household-size').value,
-                needsFixed: document.getElementById('needs-fixed').value,
-                needsVariable: document.getElementById('needs-variable').value,
-                savings: document.getElementById('savings').value,
-                goalName: document.getElementById('goal-name').value,
-                goalCost: document.getElementById('goal-cost').value,
-                updatedAt: new Date().toISOString()
-            };
+            const data = { householdSize: document.getElementById('household-size').value, savings: document.getElementById('savings').value, goalName: document.getElementById('goal-name').value, goalCost: document.getElementById('goal-cost').value, updatedAt: new Date().toISOString() };
+            [...ALL_FIELDS.rev, ...ALL_FIELDS.fix, ...ALL_FIELDS.abo, ...ALL_FIELDS.quo].forEach(id => { data[id] = document.getElementById(id).value; });
 
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                 saveText.innerText = "Sauvegardé !";
                 setTimeout(() => saveText.innerText = "Sauvegarder", 2000);
-            } catch (e) {
-                saveText.innerText = "Erreur";
-            }
+            } catch (e) { saveText.innerText = "Erreur"; }
         }
 
         function loadFromLocal() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const d = JSON.parse(raw);
-                    document.getElementById('income').value = d.income || "";
-                    document.getElementById('household-size').value = d.householdSize || "3";
-                    document.getElementById('needs-fixed').value = d.needsFixed || "";
-                    document.getElementById('needs-variable').value = d.needsVariable || "";
-                    document.getElementById('savings').value = d.savings || "";
-                    document.getElementById('goal-name').value = d.goalName || "";
-                    document.getElementById('goal-cost').value = d.goalCost || "";
-                }
+                if (!raw) return;
+                const d = JSON.parse(raw);
+                document.getElementById('household-size').value = d.householdSize || "3";
+                document.getElementById('savings').value = d.savings || "";
+                document.getElementById('goal-name').value = d.goalName || "";
+                document.getElementById('goal-cost').value = d.goalCost || "";
+                [...ALL_FIELDS.rev, ...ALL_FIELDS.fix, ...ALL_FIELDS.abo, ...ALL_FIELDS.quo].forEach(id => {
+                    if (d[id]) document.getElementById(id).value = d[id];
+                });
+                Object.keys(ALL_FIELDS).forEach(g => updateSubtotal(g));
             } catch (e) { console.error("Load error:", e); }
         }
 
         function exportSummary() {
-            const income = document.getElementById('income').value;
-            const needsFixed = document.getElementById('needs-fixed').value || 0;
-            const needsVariable = document.getElementById('needs-variable').value || 0;
-            const savings = document.getElementById('savings').value || 0;
-            const totalNeeds = parseFloat(needsFixed) + parseFloat(needsVariable);
-            const remaining = parseFloat(income) - totalNeeds - parseFloat(savings);
+            const income = sumGroup(ALL_FIELDS.rev);
+            const totalFix = sumGroup(ALL_FIELDS.fix);
+            const totalAbo = sumGroup(ALL_FIELDS.abo);
+            const totalQuo = sumGroup(ALL_FIELDS.quo);
+            const savings = parseFloat(document.getElementById('savings').value) || 0;
+            const totalNeeds = totalFix + totalAbo + totalQuo;
+            const remaining = income - totalNeeds - savings;
 
-            const text = `BILAN BUDGET SEREIN\n` +
-                `========================\n` +
-                `Revenus mensuels : ${income} €\n` +
-                `Charges fixes    : ${needsFixed} €\n` +
-                `Courses/Transport: ${needsVariable} €\n` +
-                `Épargne          : ${savings} €\n` +
-                `========================\n` +
-                `Reste pour plaisir : ${remaining.toFixed(2)} €\n\n` +
-                `Conseil : Suivez la règle 50/30/20 !`;
-            const blob = new Blob([text], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
+            let lines = ['BILAN BUDGET SEREIN', '='.repeat(40), ''];
+            lines.push('REVENUS');
+            ALL_FIELDS.rev.forEach(id => {
+                const v = parseFloat(document.getElementById(id).value) || 0;
+                if (v > 0) lines.push(`  ${document.getElementById(id).closest('.expense-row').querySelector('label').innerText} : ${v} €`);
+            });
+            lines.push(`  TOTAL REVENUS : ${income} €`, '');
+
+            lines.push('CHARGES');
+            const allExp = [...ALL_FIELDS.fix, ...ALL_FIELDS.abo, ...ALL_FIELDS.quo];
+            allExp.forEach(id => {
+                const v = parseFloat(document.getElementById(id).value) || 0;
+                if (v > 0) lines.push(`  ${FIELD_LABELS[id]} : ${v} €`);
+            });
+            lines.push(`  TOTAL CHARGES : ${totalNeeds} €`, '');
+            lines.push(`Épargne : ${savings} €`);
+            lines.push('='.repeat(40));
+            lines.push(`RESTE POUR PLAISIR : ${remaining.toFixed(2)} €`);
+
+            const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `Mon_Budget.txt`;
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Mon_Budget.txt';
             a.click();
         }
     </script>
