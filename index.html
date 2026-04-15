@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Budget Serein - Assistant Personnel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s; }
+        .dark { background-color: #0f172a; color: #f8fafc; }
+        .dark .card-ui { background-color: #1e293b; border-color: #334155; color: #f8fafc; }
+        .dark input { color: #f8fafc; }
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card-ui { background: white; border-radius: 1.5rem; border: 1px solid #F1F5F9; transition: all 0.3s; }
+        .btn-indigo { background-color: #4F46E5; }
+        .spinner { border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid #fff; width: 18px; height: 18px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#F8FAFC]">
+
+    <!-- Navigation -->
+    <nav class="p-5 sticky top-0 bg-inherit backdrop-blur-md z-30 border-b border-slate-200 dark:border-slate-800">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-hand-holding-heart text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold tracking-tight">Budget Serein</h1>
+                    <span id="step-label" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Assistant</span>
+                </div>
+            </div>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:block"></i>
+            </button>
+        </div>
+        <div id="progress-container" class="mt-4 h-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500" style="width: 0%"></div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col px-6 pb-20">
+
+        <!-- Étape 0 : Accueil -->
+        <div id="step-0" class="step-content active py-10 text-center">
+            <div class="inline-flex p-6 bg-indigo-50 dark:bg-indigo-900/30 rounded-[2rem] mb-8 text-5xl">✨</div>
+            <h2 class="text-2xl font-black mb-4">Votre foyer, votre équilibre</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-10 text-sm leading-relaxed max-w-xs mx-auto">
+                Organisons ensemble vos finances pour que vous puissiez vous concentrer sur ce qui compte vraiment.
+            </p>
+            <div id="auth-status" class="text-[10px] text-slate-400 mb-4 italic">Données sauvegardées localement</div>
+            <button id="start-btn" onclick="nextStep(1)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl shadow-lg transition-all">
+                Lancer l'assistant
+            </button>
+        </div>
+
+        <!-- Formulaire par étapes -->
+        <div id="form-steps">
+            <!-- 1. Taille du foyer -->
+            <div id="step-1" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Votre foyer</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Combien de personnes vivent sous votre toit ?</p>
+                <div class="card-ui p-6 mb-8 text-slate-900 dark:text-white">
+                    <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-4">Nombre de personnes</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="number" id="household-size" value="3" class="w-full text-4xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="numeric">
+                        <i class="fas fa-users text-3xl text-slate-200"></i>
+                    </div>
+                </div>
+                <button onclick="nextStep(2)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Continuer</button>
+            </div>
+
+            <!-- 2. Revenus -->
+            <div id="step-2" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Les entrées</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Salaire, CAF, aides, pensions...</p>
+                <div class="card-ui p-6 mb-8 text-slate-900 dark:text-white">
+                    <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-4">Total mensuel (€)</label>
+                    <input type="number" id="income" placeholder="0" class="w-full text-4xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <button onclick="nextStep(3)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- 3. Besoins Essentiels -->
+            <div id="step-3" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Les besoins essentiels</h2>
+                <p class="text-xs text-slate-400 mb-6 italic">Additionnez vos charges fixes et quotidiennes.</p>
+                <div class="space-y-4 mb-8">
+                    <div class="card-ui p-4 border-l-4 border-l-rose-500 text-slate-900 dark:text-white">
+                        <label class="block text-[10px] font-bold text-rose-500 uppercase mb-2">Loyer & Factures (€)</label>
+                        <input type="number" id="needs-fixed" placeholder="0" class="w-full text-2xl font-bold bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                    </div>
+                    <div class="card-ui p-4 border-l-4 border-l-amber-500 text-slate-900 dark:text-white">
+                        <label class="block text-[10px] font-bold text-amber-500 uppercase mb-2">Courses & Transport (€)</label>
+                        <input type="number" id="needs-variable" placeholder="0" class="w-full text-2xl font-bold bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                    </div>
+                </div>
+                <button onclick="nextStep(4)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- 4. Objectif Plaisir -->
+            <div id="step-4" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Un projet plaisir ?</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Une sortie, un vêtement, un petit cadeau...</p>
+                <div class="card-ui p-6 mb-4 text-slate-900 dark:text-white">
+                    <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-2">Nom du projet</label>
+                    <input type="text" id="goal-name" placeholder="Ex: Restaurant en famille" class="w-full text-lg font-bold bg-transparent border-0 focus:ring-0 p-0 mb-4">
+                    <label class="block text-[10px] font-bold text-indigo-500 uppercase mb-2">Coût estimé (€)</label>
+                    <input type="number" id="goal-cost" placeholder="0" class="w-full text-3xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <button onclick="nextStep(5)" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl">Suivant</button>
+            </div>
+
+            <!-- 5. Épargne -->
+            <div id="step-5" class="step-content pt-4">
+                <h2 class="text-xl font-extrabold mb-2">Votre sécurité</h2>
+                <p class="text-xs text-slate-400 mb-8 italic">Ce que vous mettez de côté pour l'avenir.</p>
+                <div class="card-ui p-6 mb-8 border-l-4 border-l-emerald-400 text-slate-900 dark:text-white">
+                    <label class="block text-[10px] font-bold text-emerald-500 uppercase mb-4">Épargne souhaitée (€)</label>
+                    <input type="number" id="savings" placeholder="0" class="w-full text-4xl font-black bg-transparent border-0 focus:ring-0 p-0" inputmode="decimal">
+                </div>
+                <button onclick="calculateAndShowResults()" class="w-full btn-indigo text-white font-bold py-4 rounded-2xl shadow-lg">Voir mon bilan</button>
+            </div>
+        </div>
+
+        <!-- RÉSULTATS FINAUX -->
+        <div id="step-result" class="step-content">
+            <div class="bg-slate-900 rounded-[2rem] p-8 text-center text-white mb-6 shadow-xl relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Reste pour se faire plaisir</p>
+                    <div id="final-amount" class="text-4xl font-black mb-2 tracking-tight">0,00 €</div>
+                    <div id="final-status" class="inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase bg-white/10">Bilan établi</div>
+                </div>
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl"></div>
+            </div>
+
+            <!-- Statut de l'objectif -->
+            <div id="goal-result" class="mb-8 p-4 rounded-2xl border-2 border-dashed text-center text-sm font-bold"></div>
+
+            <!-- Graphique Répartition -->
+            <div class="card-ui p-6 mb-10">
+                <h3 class="font-black text-sm mb-6 flex items-center">
+                    <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>
+                    Répartition 50/30/20
+                </h3>
+                <div class="max-w-[200px] mx-auto mb-6">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-[9px] text-center font-bold">
+                    <div><div class="w-3 h-3 bg-rose-500 rounded-full mx-auto mb-1"></div>Besoins</div>
+                    <div><div class="w-3 h-3 bg-indigo-500 rounded-full mx-auto mb-1"></div>Envies</div>
+                    <div><div class="w-3 h-3 bg-emerald-500 rounded-full mx-auto mb-1"></div>Épargne</div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <button onclick="saveToLocal()" class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold py-4 rounded-2xl flex items-center justify-center space-x-2 border border-indigo-100 dark:border-indigo-800">
+                    <i class="fas fa-save"></i>
+                    <span id="save-text">Sauvegarder</span>
+                </button>
+                <button onclick="exportSummary()" class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold py-4 rounded-2xl flex items-center justify-center space-x-2">
+                    <i class="fas fa-download"></i>
+                    <span>Exporter</span>
+                </button>
+            </div>
+
+            <!-- Diagnostics Expert -->
+            <div class="space-y-6">
+                <section>
+                    <h3 class="font-black text-sm mb-4 px-2">Diagnostic de l'expert</h3>
+                    <div id="expert-diagnostic" class="space-y-3"></div>
+                </section>
+
+                <section class="bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                    <h3 class="text-xs font-bold text-emerald-900 dark:text-emerald-400 uppercase mb-2">Rappel : Le LEP</h3>
+                    <p class="text-[11px] text-emerald-800 dark:text-emerald-300 leading-relaxed italic">
+                        C'est votre meilleur allié. Sécurisé, disponible et avec le meilleur taux actuel. Vérifiez si vous êtes éligible !
+                    </p>
+                </section>
+            </div>
+
+            <button onclick="location.reload()" class="w-full mt-12 py-4 text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em] border-t border-slate-100 dark:border-slate-800">
+                Recommencer
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let currentStep = 0;
+        let chartInstance = null;
+        const totalSteps = 5;
+        const STORAGE_KEY = 'budget-serein-data';
+
+        window.addEventListener('load', () => {
+            loadFromLocal();
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark');
+            }
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+        }
+
+        function nextStep(step) {
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            const nextEl = document.getElementById(`step-${step}`);
+            if (nextEl) {
+                nextEl.classList.add('active');
+                currentStep = step;
+                const progress = (step / totalSteps) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                document.getElementById('step-label').innerText = `Étape ${step}/${totalSteps}`;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function calculateAndShowResults() {
+            const income = parseFloat(document.getElementById('income').value) || 0;
+            const householdSize = parseFloat(document.getElementById('household-size').value) || 3;
+            const needsFixed = parseFloat(document.getElementById('needs-fixed').value) || 0;
+            const needsVariable = parseFloat(document.getElementById('needs-variable').value) || 0;
+            const savings = parseFloat(document.getElementById('savings').value) || 0;
+            const goalName = document.getElementById('goal-name').value || "Projet";
+            const goalCost = parseFloat(document.getElementById('goal-cost').value) || 0;
+
+            const totalNeeds = needsFixed + needsVariable;
+            const remainingForFun = income - totalNeeds - savings;
+
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('form-steps').style.display = 'none';
+
+            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-result').classList.add('active');
+
+            const amountEl = document.getElementById('final-amount');
+            amountEl.innerText = remainingForFun.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+
+            const status = document.getElementById('final-status');
+            if (remainingForFun < 0) {
+                amountEl.className = "text-4xl font-black mb-2 text-rose-400";
+                status.innerText = "DÉFICIT À RÉGLER";
+                status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase bg-rose-500 text-white";
+            } else {
+                amountEl.className = "text-4xl font-black mb-2 text-emerald-400";
+                status.innerText = "BUDGET ÉQUILIBRÉ";
+                status.className = "inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-500 text-white";
+            }
+
+            const goalDiv = document.getElementById('goal-result');
+            if (goalCost > 0) {
+                goalDiv.style.display = 'block';
+                if (remainingForFun >= goalCost) {
+                    goalDiv.innerHTML = `<span class="text-emerald-500"><i class="fas fa-check-circle"></i> Votre budget permet de financer "${goalName}" (${goalCost}€).</span>`;
+                    goalDiv.className = "mb-8 p-4 rounded-2xl border-2 border-dashed border-emerald-200 text-center text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20";
+                } else {
+                    const diff = goalCost - remainingForFun;
+                    goalDiv.innerHTML = `<span class="text-amber-500"><i class="fas fa-hourglass-half"></i> Il vous manque ${diff.toFixed(2)}€ pour "${goalName}".</span>`;
+                    goalDiv.className = "mb-8 p-4 rounded-2xl border-2 border-dashed border-amber-200 text-center text-sm font-bold bg-amber-50 dark:bg-amber-900/20";
+                }
+            } else {
+                goalDiv.style.display = 'none';
+            }
+
+            renderChart(totalNeeds, Math.max(0, remainingForFun), savings);
+            generateExpertDiagnostics(income, totalNeeds, remainingForFun, savings, householdSize);
+            saveToLocal();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderChart(needs, envies, savings) {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [needs, envies, savings],
+                        backgroundColor: ['#f43f5e', '#6366f1', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function generateExpertDiagnostics(income, needs, fun, savings, size) {
+            const diagDiv = document.getElementById('expert-diagnostic');
+            let html = "";
+            const needsPercent = (needs / income) * 100;
+
+            if (needsPercent > 60) {
+                html += createDiagCard("Besoins", `Attention : vos charges vitales occupent ${Math.round(needsPercent)}% de vos revenus (cible: 50%). Renégociez vos contrats !`, "rose");
+            } else {
+                html += createDiagCard("Besoins", `Sain : vos charges vitales sont sous contrôle (${Math.round(needsPercent)}%).`, "emerald");
+            }
+
+            const groceriesBenchmark = size * 160;
+            const variableVal = parseFloat(document.getElementById('needs-variable').value) || 0;
+            if (variableVal > groceriesBenchmark + 100) {
+                html += createDiagCard("Quotidien", `Pour ${size} personnes, votre budget semble élevé. Testez les marques distributeurs pour gagner de l'air !`, "amber");
+            }
+
+            diagDiv.innerHTML = html;
+        }
+
+        function createDiagCard(title, text, color) {
+            const colors = { rose: "border-rose-200 bg-rose-50 text-rose-900", amber: "border-amber-200 bg-amber-50 text-amber-900", emerald: "border-emerald-200 bg-emerald-50 text-emerald-900" };
+            return `<div class="p-4 rounded-2xl border text-[11px] leading-relaxed ${colors[color]} dark:bg-opacity-10">
+                        <strong class="block mb-1 uppercase tracking-tighter">${title}</strong>${text}
+                    </div>`;
+        }
+
+        function saveToLocal() {
+            const saveText = document.getElementById('save-text');
+            saveText.innerText = "Sauvegarde...";
+
+            const data = {
+                income: document.getElementById('income').value,
+                householdSize: document.getElementById('household-size').value,
+                needsFixed: document.getElementById('needs-fixed').value,
+                needsVariable: document.getElementById('needs-variable').value,
+                savings: document.getElementById('savings').value,
+                goalName: document.getElementById('goal-name').value,
+                goalCost: document.getElementById('goal-cost').value,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                saveText.innerText = "Sauvegardé !";
+                setTimeout(() => saveText.innerText = "Sauvegarder", 2000);
+            } catch (e) {
+                saveText.innerText = "Erreur";
+            }
+        }
+
+        function loadFromLocal() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const d = JSON.parse(raw);
+                    document.getElementById('income').value = d.income || "";
+                    document.getElementById('household-size').value = d.householdSize || "3";
+                    document.getElementById('needs-fixed').value = d.needsFixed || "";
+                    document.getElementById('needs-variable').value = d.needsVariable || "";
+                    document.getElementById('savings').value = d.savings || "";
+                    document.getElementById('goal-name').value = d.goalName || "";
+                    document.getElementById('goal-cost').value = d.goalCost || "";
+                }
+            } catch (e) { console.error("Load error:", e); }
+        }
+
+        function exportSummary() {
+            const income = document.getElementById('income').value;
+            const needsFixed = document.getElementById('needs-fixed').value || 0;
+            const needsVariable = document.getElementById('needs-variable').value || 0;
+            const savings = document.getElementById('savings').value || 0;
+            const totalNeeds = parseFloat(needsFixed) + parseFloat(needsVariable);
+            const remaining = parseFloat(income) - totalNeeds - parseFloat(savings);
+
+            const text = `BILAN BUDGET SEREIN\n` +
+                `========================\n` +
+                `Revenus mensuels : ${income} €\n` +
+                `Charges fixes    : ${needsFixed} €\n` +
+                `Courses/Transport: ${needsVariable} €\n` +
+                `Épargne          : ${savings} €\n` +
+                `========================\n` +
+                `Reste pour plaisir : ${remaining.toFixed(2)} €\n\n` +
+                `Conseil : Suivez la règle 50/30/20 !`;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Mon_Budget.txt`;
+            a.click();
+        }
+    </script>
+</body>
+</html>
